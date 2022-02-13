@@ -1,0 +1,12 @@
+{
+  "name": "@wcd/alangdm.splitwise-categorizer",
+  "version": "0.0.0",
+  "description": "",
+  "license": "ISC",
+  "type": "module",
+  "homepage": "{{ homepage }}",
+  "scripts": {
+    "serve": "npx wcd-cli@latest serve XHUBx6fzBvJ5jP4VXDKy --open"
+  },
+  "dependencies": {}
+}
