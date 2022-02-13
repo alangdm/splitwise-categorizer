@@ -76,6 +76,10 @@ class SplitwiseCategorizer extends LitElement {
         .category-footer + .category-header {
           border-top: 2px solid var(--teal-9);
         }
+        ::selection {
+          color: var(--gray-9);
+          background: var(--teal-3);
+        }
       `];
   }
 
