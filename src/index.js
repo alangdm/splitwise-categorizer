@@ -1,7 +1,10 @@
 import { html, css, LitElement } from "lit";
 
 import { resetCSS } from "./reset.css.js";
+
 import "./category-table.js";
+
+import { getColumnIndexes } from "./utils.js";
 
 class SplitwiseCategorizer extends LitElement {
   static get styles() {
@@ -70,13 +73,7 @@ class SplitwiseCategorizer extends LitElement {
     super();
     this.isCategorizing = false;
     this.categories = {};
-    this.columns = {
-      date: 0,
-      description: 1,
-      category: 2,
-      cost: 3,
-      currency: 4,
-    };
+    this.columns = {};
   }
 
   get csv() {
@@ -146,8 +143,10 @@ class SplitwiseCategorizer extends LitElement {
     this.total = 0;
 
     const csvRows = this.csv.split("\n").filter((i) => i);
-    // TODO set col indexes from csv headers
-    // const csvHeaders = csvRows[0];
+
+    const csvHeaders = csvRows[0];
+    this.columns = getColumnIndexes(csvHeaders.split(","));
+
     const csvContents = csvRows.slice(1, csvRows.length - 1);
 
     this._parseContents(csvContents);
