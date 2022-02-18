@@ -1,11 +1,12 @@
 import { packd_export_0 } from 'https://srv.divriots.com/packd/lit,lit-html@next-major?env.NODE_ENV=development';const { html,css,LitElement } = packd_export_0;;
 import { resetCSS } from "./reset.css.js";
+import { sharedCSS } from "./shared.css.js";
 import "./category-table.js";
 import { getColumnIndexes } from "./utils.js";
 
 class SplitwiseCategorizer extends LitElement {
   static get styles() {
-    return [resetCSS, css`
+    return [resetCSS, sharedCSS, css`
         :host {
           height: 100%;
           padding: 0.5rem;
@@ -31,26 +32,6 @@ class SplitwiseCategorizer extends LitElement {
         }
         textarea:focus-visible {
           outline: solid var(--primary-color);
-        }
-        button {
-          background: var(--primary-color);
-          text-shadow: 0 1px 0 var(--primary-color);
-          color: var(--primary-contrast-color);
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 5px;
-          box-shadow: 0 3px 5px -2px var(--gray-9);
-        }
-        button:focus-visible {
-          outline: none;
-          filter: opacity(0.7);
-        }
-        button:hover {
-          filter: opacity(0.85);
-        }
-        ::selection {
-          color: var(--gray-9);
-          background: var(--teal-3);
         }
       `];
   }

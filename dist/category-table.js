@@ -1,10 +1,19 @@
 import { packd_export_0 } from 'https://srv.divriots.com/packd/lit,lit-html@next-major?env.NODE_ENV=development';const { html,css,LitElement,empty } = packd_export_0;;
 import { resetCSS } from "./reset.css.js";
+import { sharedCSS } from "./shared.css.js";
+const CLIPBOARD_MESSAGES = {
+  success: "Table copied to clipboard!",
+  error: "Couldn't copy to clipboard. Please do it manually."
+};
 
 class CategoryTable extends LitElement {
   static get styles() {
-    return [resetCSS, css`
-        /* table */
+    return [resetCSS, sharedCSS, css`
+        :host {
+          display: grid;
+          grid-template-rows: auto 1fr;
+          gap: 1rem;
+        }
         table {
           width: 100%;
           line-height: 2;
@@ -34,10 +43,6 @@ class CategoryTable extends LitElement {
         .category-footer + .category-header {
           border-top: 2px solid var(--teal-9);
         }
-        ::selection {
-          color: var(--gray-9);
-          background: var(--teal-3);
-        }
       `];
   }
 
@@ -49,6 +54,9 @@ class CategoryTable extends LitElement {
       },
       total: {
         type: Number
+      },
+      clipboardMessage: {
+        type: String
       }
     };
   }
@@ -56,6 +64,19 @@ class CategoryTable extends LitElement {
   constructor() {
     super();
     this.categories = {};
+    this.clipboardMessage = "";
+  }
+
+  async _copy() {
+    const table = this.shadowRoot.querySelector("table");
+    const text = table.innerText.trim();
+
+    try {
+      await window.navigator.clipboard.writeText(text);
+      this.clipboardMessage = CLIPBOARD_MESSAGES.success;
+    } catch (e) {
+      this.clipboardMessage = CLIPBOARD_MESSAGES.error;
+    }
   }
 
   _categoryTemplate([category, {
@@ -94,6 +115,10 @@ class CategoryTable extends LitElement {
     }
 
     return html`
+      <div>
+        <button type="button" @click=${this._copy}>Copy to clipboard</button>
+        <span>${this.clipboardMessage}</span>
+      </div>
       <table>
         <tbody>
           <tr class="table-header">
