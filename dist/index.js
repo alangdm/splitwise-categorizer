@@ -1,5 +1,7 @@
-import { packd_export_0 } from 'https://srv.divriots.com/packd/lit,lit-html@next-major?env.NODE_ENV=development';const { html,css,LitElement,empty } = packd_export_0;;
+import { packd_export_0 } from 'https://srv.divriots.com/packd/lit,lit-html@next-major?env.NODE_ENV=development';const { html,css,LitElement } = packd_export_0;;
 import { resetCSS } from "./reset.css.js";
+import "./category-table.js";
+import { getColumnIndexes } from "./utils.js";
 
 class SplitwiseCategorizer extends LitElement {
   static get styles() {
@@ -46,36 +48,6 @@ class SplitwiseCategorizer extends LitElement {
         button:hover {
           filter: opacity(0.85);
         }
-        /* table */
-        table {
-          width: 100%;
-          line-height: 2;
-          border-collapse: collapse;
-        }
-        td,
-        th {
-          padding: 0 0.5rem;
-        }
-        .table-header,
-        .table-footer {
-          background: var(--teal-9);
-          color: var(--gray-0);
-          font-weight: bold;
-        }
-        tbody
-          tr:not(.category-footer, .category-header, .table-header, .table-footer):hover {
-          background: var(--teal-2);
-        }
-        .category-header th {
-          text-align: left;
-        }
-        :where(.category-footer, .table-footer) th,
-        .currency {
-          text-align: right;
-        }
-        .category-footer + .category-header {
-          border-top: 2px solid var(--teal-9);
-        }
         ::selection {
           color: var(--gray-9);
           background: var(--teal-3);
@@ -104,71 +76,11 @@ class SplitwiseCategorizer extends LitElement {
     super();
     this.isCategorizing = false;
     this.categories = {};
-    this.columns = {
-      date: 0,
-      description: 1,
-      category: 2,
-      cost: 3,
-      currency: 4
-    };
+    this.columns = {};
   }
 
   get csv() {
     return this.shadowRoot.querySelector("#csv").value;
-  }
-
-  _categoryTemplate([category, {
-    items,
-    subtotal
-  }]) {
-    return html`
-      <tr class="category-header">
-        <th scope="row" colspan="4">${category}</th>
-      </tr>
-      ${items.map(({
-      date,
-      description,
-      cost,
-      currency
-    }) => html`
-          <tr>
-            <td>${date}</td>
-            <td>${description}</td>
-            <td class="currency">${currency}</td>
-            <td>${cost}</td>
-          </tr>
-        `)}
-      <tr class="category-footer">
-        <th scope="row" colspan="3">${category} subtotal</th>
-        <td>${subtotal}</td>
-      </tr>
-    `;
-  }
-
-  _categoriesTemplate() {
-    const categories = Object.entries(this.categories);
-
-    if (categories.length === 0) {
-      return empty;
-    }
-
-    return html`
-      <table>
-        <tbody>
-          <tr class="table-header">
-            <th scope="col">Date</th>
-            <th scope="col">Description</th>
-            <th scope="col">Currency</th>
-            <th scope="col">Cost</th>
-          </tr>
-          ${categories.map(this._categoryTemplate)}
-          <tr class="table-footer">
-            <th scope="row" colspan="3">Total</th>
-            <td>${this.total}</td>
-          </tr>
-        </tbody>
-      </table>
-    `;
   }
 
   render() {
@@ -184,7 +96,10 @@ class SplitwiseCategorizer extends LitElement {
         <button type="button" @click=${this._categorize}>Categorize</button>
       </header>
       <main>
-        ${this.isCategorizing ? html`Categorizing...` : this._categoriesTemplate()}
+        ${this.isCategorizing ? html`Categorizing...` : html`<category-table
+              .categories=${this.categories}
+              .total=${this.total}
+            ></category-table>`}
       </main>
     `;
   }
@@ -228,9 +143,9 @@ class SplitwiseCategorizer extends LitElement {
     this.isCategorizing = true;
     this.categories = {};
     this.total = 0;
-    const csvRows = this.csv.split("\n").filter(i => i); // TODO set col indexes from csv headers
-    // const csvHeaders = csvRows[0];
-
+    const csvRows = this.csv.split("\n").filter(i => i);
+    const csvHeaders = csvRows[0];
+    this.columns = getColumnIndexes(csvHeaders.split(","));
     const csvContents = csvRows.slice(1, csvRows.length - 1);
 
     this._parseContents(csvContents);
