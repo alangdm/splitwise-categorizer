@@ -4,6 +4,7 @@ import { resetCSS } from "./reset.css.js";
 import { sharedCSS } from "./shared.css.js";
 
 import "./category-table.js";
+import "./csv-input.js";
 
 import { getColumnIndexes } from "./utils.js";
 
@@ -30,15 +31,6 @@ class SplitwiseCategorizer extends LitElement {
           padding-bottom: 1rem;
           border-bottom: 2px solid var(--gray-5);
         }
-        label {
-          font-weight: bold;
-        }
-        textarea {
-          resize: block;
-        }
-        textarea:focus-visible {
-          outline: solid var(--primary-color);
-        }
       `,
     ];
   }
@@ -59,19 +51,13 @@ class SplitwiseCategorizer extends LitElement {
   }
 
   get csv() {
-    return this.shadowRoot.querySelector("#csv").value;
+    return this.shadowRoot.querySelector("csv-input").csv;
   }
 
   render() {
     return html`
       <header>
-        <label for="csv">Splitwise CSV</label>
-        <textarea
-          id="csv"
-          rows="5"
-          cols="80"
-          placeholder="Paste the full Splitwise CSV here"
-        ></textarea>
+        <csv-input></csv-input>
         <button type="button" @click=${this._categorize}>Categorize</button>
       </header>
       <main>
