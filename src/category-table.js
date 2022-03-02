@@ -55,7 +55,7 @@ class CategoryTable extends LitElement {
   static get properties() {
     return {
       categories: { type: Array, attribute: false },
-      total: { type: Number },
+      totals: { type: Object, attribute: false },
       clipboardMessage: { type: String },
     };
   }
@@ -64,6 +64,7 @@ class CategoryTable extends LitElement {
     super();
     this.categories = {};
     this.clipboardMessage = "";
+    this._categoryTemplate = this._categoryTemplate.bind(this);
   }
 
   async _copy() {
@@ -77,10 +78,30 @@ class CategoryTable extends LitElement {
     }
   }
 
-  _categoryTemplate([category, { items, subtotal }]) {
+  _totalsTemplate({ category, totals }) {
+    const entries = Object.entries(totals);
+    return html`
+      ${entries.map(
+        ([currency, total], index) => html`
+          <tr class="${category ? "category-footer" : "table-footer"}">
+            <td></td>
+            ${index === 0
+              ? html`<th scope="row">
+                  ${category ? `${category} subtotal` : "Total"}
+                </th>`
+              : html`<td></td>`}
+            <td class="currency">${currency}</td>
+            <td>${total}</td>
+          </tr>
+        `
+      )}
+    `;
+  }
+
+  _categoryTemplate([category, { items, subtotals }]) {
     return html`
       <tr class="category-header">
-        <th scope="row" colspan="4">${category}</th>
+        <th scope="row" colspan="4">* ${category}</th>
       </tr>
       ${items.map(
         ({ date, description, cost, currency }) => html`
@@ -92,10 +113,7 @@ class CategoryTable extends LitElement {
           </tr>
         `
       )}
-      <tr class="category-footer">
-        <th scope="row" colspan="3">${category} subtotal</th>
-        <td>${subtotal}</td>
-      </tr>
+      ${this._totalsTemplate({ category, totals: subtotals })}
     `;
   }
 
@@ -118,10 +136,7 @@ class CategoryTable extends LitElement {
             <th scope="col">Cost</th>
           </tr>
           ${categories.map(this._categoryTemplate)}
-          <tr class="table-footer">
-            <th scope="row" colspan="3">Total</th>
-            <td>${this.total}</td>
-          </tr>
+          ${this._totalsTemplate({ totals: this.totals })}
         </tbody>
       </table>
     `;

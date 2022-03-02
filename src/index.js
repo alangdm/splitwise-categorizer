@@ -39,7 +39,7 @@ class SplitwiseCategorizer extends LitElement {
     return {
       categories: { type: Array, state: true },
       isCategorizing: { type: Boolean, reflect: true },
-      total: { type: Number, state: true },
+      totals: { type: Object, state: true },
     };
   }
 
@@ -48,6 +48,7 @@ class SplitwiseCategorizer extends LitElement {
     this.isCategorizing = false;
     this.categories = {};
     this.columns = {};
+    this.totals = {};
   }
 
   get csv() {
@@ -65,14 +66,13 @@ class SplitwiseCategorizer extends LitElement {
           ? html`Categorizing...`
           : html`<category-table
               .categories=${this.categories}
-              .total=${this.total}
+              .totals=${this.totals}
             ></category-table>`}
       </main>
     `;
   }
 
   _parseContents(csvContents) {
-    // TODO multiple currencies?
     const cols = this.columns;
     for (const row of csvContents) {
       const values = row.split(",");
@@ -85,7 +85,7 @@ class SplitwiseCategorizer extends LitElement {
       if (!this.categories[category]) {
         this.categories[category] = {
           items: [],
-          subtotal: 0,
+          subtotals: {},
         };
       }
 
@@ -96,8 +96,17 @@ class SplitwiseCategorizer extends LitElement {
         currency,
       });
 
-      this.categories[category].subtotal += cost;
-      this.total += cost;
+      if (!this.categories[category].subtotals[currency]) {
+        this.categories[category].subtotals[currency] = cost;
+      } else {
+        this.categories[category].subtotals[currency] += cost;
+      }
+
+      if (!this.totals[currency]) {
+        this.totals[currency] = cost;
+      } else {
+        this.totals[currency] += cost;
+      }
     }
   }
 
@@ -108,7 +117,7 @@ class SplitwiseCategorizer extends LitElement {
     }
     this.isCategorizing = true;
     this.categories = {};
-    this.total = 0;
+    this.totals = {};
 
     const csvRows = this.csv.split("\n").filter((i) => i);
 
