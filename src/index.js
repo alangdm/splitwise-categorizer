@@ -68,6 +68,7 @@ class SplitwiseCategorizer extends LitElement {
           : html`<category-table
               .categories=${this.categories}
               .totals=${this.totals}
+              .paymentMethodTotals=${this.paymentMethodTotals}
             ></category-table>`}
       </main>
     `;
@@ -146,8 +147,6 @@ class SplitwiseCategorizer extends LitElement {
     const csvContents = csvRows.slice(1, csvRows.length - 1);
 
     this._parseContents(csvContents);
-
-    console.log(this.paymentMethodTotals);
 
     this.isCategorizing = false;
   }

@@ -47,3 +47,7 @@ export const parseDescription = (rawText) => {
   const { paymentMethod, description } = DESCRIPTION_REGEX.exec(rawText).groups;
   return { paymentMethod: paymentMethod?.toLowerCase(), description };
 };
+
+export const getPaymentMethodName = (method, lang = "en") => {
+  return PAYMENT_METHODS[method]?.[lang];
+};
