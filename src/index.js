@@ -6,7 +6,7 @@ import { sharedCSS } from "./shared.css.js";
 import "./category-table.js";
 import "./csv-input.js";
 
-import { getColumnIndexes } from "./utils.js";
+import { getColumnIndexes, parseDescription } from "./utils.js";
 
 class SplitwiseCategorizer extends LitElement {
   static get styles() {
@@ -49,6 +49,7 @@ class SplitwiseCategorizer extends LitElement {
     this.categories = {};
     this.columns = {};
     this.totals = {};
+    this.paymentMethodTotals = {};
   }
 
   get csv() {
@@ -77,7 +78,9 @@ class SplitwiseCategorizer extends LitElement {
     for (const row of csvContents) {
       const values = row.split(",");
       const date = values[cols.date];
-      const description = values[cols.description];
+      const { paymentMethod, description } = parseDescription(
+        values[cols.description]
+      );
       const category = values[cols.category];
       const cost = parseFloat(values[cols.cost]);
       const currency = values[cols.currency];
@@ -94,6 +97,7 @@ class SplitwiseCategorizer extends LitElement {
         description,
         cost,
         currency,
+        paymentMethod,
       });
 
       if (!this.categories[category].subtotals[currency]) {
@@ -107,6 +111,20 @@ class SplitwiseCategorizer extends LitElement {
       } else {
         this.totals[currency] += cost;
       }
+
+      // payment method
+      if (!paymentMethod) {
+        continue;
+      }
+
+      if (!this.paymentMethodTotals[paymentMethod]) {
+        this.paymentMethodTotals[paymentMethod] = {};
+      }
+      if (!this.paymentMethodTotals[paymentMethod][currency]) {
+        this.paymentMethodTotals[paymentMethod][currency] = cost;
+      } else {
+        this.paymentMethodTotals[paymentMethod][currency] += cost;
+      }
     }
   }
 
@@ -118,6 +136,7 @@ class SplitwiseCategorizer extends LitElement {
     this.isCategorizing = true;
     this.categories = {};
     this.totals = {};
+    this.paymentMethodTotals = {};
 
     const csvRows = this.csv.split("\n").filter((i) => i);
 
@@ -127,6 +146,8 @@ class SplitwiseCategorizer extends LitElement {
     const csvContents = csvRows.slice(1, csvRows.length - 1);
 
     this._parseContents(csvContents);
+
+    console.log(this.paymentMethodTotals);
 
     this.isCategorizing = false;
   }
