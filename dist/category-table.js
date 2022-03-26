@@ -1,6 +1,7 @@
 import { packd_export_0 } from 'https://srv.divriots.com/packd/lit,lit-html@next-major?env.NODE_ENV=development';const { html,css,LitElement,empty } = packd_export_0;;
 import { resetCSS } from "./reset.css.js";
 import { sharedCSS } from "./shared.css.js";
+import { getPaymentMethodName } from "./utils.js";
 const CLIPBOARD_MESSAGES = {
   success: "Table copied to clipboard!",
   error: "Couldn't copy to clipboard. Please do it manually."
@@ -29,14 +30,19 @@ class CategoryTable extends LitElement {
           color: var(--gray-0);
           font-weight: bold;
         }
+        .payment-method-footer {
+          background: var(--teal-7);
+          color: var(--gray-0);
+          font-weight: bold;
+        }
         tbody
-          tr:not(.category-footer, .category-header, .table-header, .table-footer):hover {
+          tr:not(.category-footer, .category-header, .table-header, .table-footer, .payment-method-footer):hover {
           background: var(--teal-2);
         }
         .category-header th {
           text-align: left;
         }
-        :where(.category-footer, .table-footer) th,
+        :where(.category-footer, .table-footer, .payment-method-footer) th,
         .currency {
           text-align: right;
         }
@@ -53,6 +59,10 @@ class CategoryTable extends LitElement {
         attribute: false
       },
       totals: {
+        type: Object,
+        attribute: false
+      },
+      paymentMethodTotals: {
         type: Object,
         attribute: false
       },
@@ -82,16 +92,18 @@ class CategoryTable extends LitElement {
   }
 
   _totalsTemplate({
-    category,
-    totals
+    header,
+    totals,
+    cssClass = "table-footer"
   }) {
     const entries = Object.entries(totals);
     return html`
       ${entries.map(([currency, total], index) => html`
-          <tr class="${category ? "category-footer" : "table-footer"}">
+          <tr class=${cssClass}>
+            <td></td>
             <td></td>
             ${index === 0 ? html`<th scope="row">
-                  ${category ? `${category} subtotal` : "Total"}
+                  ${header ? `${header} subtotal` : "Total"}
                 </th>` : html`<td></td>`}
             <td class="currency">${currency}</td>
             <td>${total}</td>
@@ -106,25 +118,39 @@ class CategoryTable extends LitElement {
   }]) {
     return html`
       <tr class="category-header">
-        <th scope="row" colspan="4">* ${category}</th>
+        <th scope="row" colspan="5">* ${category}</th>
       </tr>
       ${items.map(({
       date,
       description,
       cost,
-      currency
+      currency,
+      paymentMethod = ""
     }) => html`
           <tr>
             <td>${date}</td>
             <td>${description}</td>
+            <td>${getPaymentMethodName(paymentMethod)}</td>
             <td class="currency">${currency}</td>
             <td>${cost}</td>
           </tr>
         `)}
       ${this._totalsTemplate({
-      category,
-      totals: subtotals
+      header: category,
+      totals: subtotals,
+      cssClass: "category-footer"
     })}
+    `;
+  }
+
+  _paymentMethodTotalsTemplate() {
+    const entries = Object.entries(this.paymentMethodTotals);
+    return html`
+      ${entries.map(([paymentMethod, totals]) => this._totalsTemplate({
+      header: getPaymentMethodName(paymentMethod),
+      totals,
+      cssClass: "payment-method-footer"
+    }))}
     `;
   }
 
@@ -145,10 +171,12 @@ class CategoryTable extends LitElement {
           <tr class="table-header">
             <th scope="col">Date</th>
             <th scope="col">Description</th>
+            <th scope="col">Payment Method</th>
             <th scope="col">Currency</th>
             <th scope="col">Cost</th>
           </tr>
           ${categories.map(this._categoryTemplate)}
+          ${this._paymentMethodTotalsTemplate()}
           ${this._totalsTemplate({
       totals: this.totals
     })}
