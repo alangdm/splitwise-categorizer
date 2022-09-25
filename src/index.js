@@ -1,5 +1,11 @@
 import { html, css, LitElement } from "lit";
 
+import {
+  isExcludedCategory,
+  normalizeCategoryName,
+  CATEGORIES,
+} from "./utils.js";
+
 import { resetCSS } from "./reset.css.js";
 import { sharedCSS } from "./shared.css.js";
 
@@ -52,15 +58,14 @@ class SplitwiseCategorizer extends LitElement {
     this.paymentMethodTotals = {};
   }
 
-  get csv() {
-    return this.shadowRoot.querySelector("csv-input").csv;
+  get csvArray() {
+    return this.shadowRoot.querySelector("csv-input").csvArray;
   }
 
   render() {
     return html`
       <header>
-        <csv-input></csv-input>
-        <button type="button" @click=${this._categorize}>Categorize</button>
+        <csv-input @change=${this._categorize}></csv-input>
       </header>
       <main>
         ${this.isCategorizing
@@ -74,6 +79,18 @@ class SplitwiseCategorizer extends LitElement {
     `;
   }
 
+  _reset() {
+    this.categories = {};
+    this.totals = {};
+    this.paymentMethodTotals = {};
+    for (const { en } of CATEGORIES) {
+      this.categories[en] = {
+        items: [],
+        subtotals: {},
+      };
+    }
+  }
+
   _parseContents(csvContents) {
     const cols = this.columns;
     for (const row of csvContents) {
@@ -82,15 +99,20 @@ class SplitwiseCategorizer extends LitElement {
       const { paymentMethod, description } = parseDescription(
         values[cols.description]
       );
-      const category = values[cols.category];
+      const rawCategory = values[cols.category];
       const cost = parseFloat(values[cols.cost]);
       const currency = values[cols.currency];
 
-      if (!this.categories[category]) {
-        this.categories[category] = {
-          items: [],
-          subtotals: {},
-        };
+      if (isExcludedCategory(rawCategory)) {
+        // do nothing
+        continue;
+      }
+
+      const category = normalizeCategoryName(rawCategory);
+
+      if (!category) {
+        console.error("Couldn't find category: ", category);
+        continue;
       }
 
       this.categories[category].items.push({
@@ -130,24 +152,23 @@ class SplitwiseCategorizer extends LitElement {
   }
 
   _categorize() {
-    if (!this.csv || this.isCategorizing) {
+    if (!this.csvArray || this.isCategorizing) {
       // TODO error handling
       return;
     }
     this.isCategorizing = true;
-    this.categories = {};
-    this.totals = {};
-    this.paymentMethodTotals = {};
+    this._reset();
 
-    const csvRows = this.csv.split("\n").filter((i) => i);
+    for (const csv of this.csvArray) {
+      const csvRows = csv.content.split("\n").filter((i) => i);
 
-    const csvHeaders = csvRows[0];
-    this.columns = getColumnIndexes(csvHeaders.split(","));
+      const csvHeaders = csvRows[0];
+      this.columns = getColumnIndexes(csvHeaders.split(","));
 
-    const csvContents = csvRows.slice(1, csvRows.length - 1);
+      const csvContents = csvRows.slice(1, csvRows.length - 1);
 
-    this._parseContents(csvContents);
-
+      this._parseContents(csvContents);
+    }
     this.isCategorizing = false;
   }
 }
