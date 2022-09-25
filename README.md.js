@@ -1,0 +1,3 @@
+
+export const __content = "<h1 id=\"splitwise-categorizer\"><a aria-hidden=\"true\" tabindex=\"-1\" href=\"#splitwise-categorizer\"><span class=\"icon icon-link\"></span></a>splitwise-categorizer</h1>\n<p>A small little tool to convert a Splitwise CSV into an HTML table that can be copied to Excel/Google Sheets.</p>\n<p>It ignores the whole part about who paid what, it's mostly meant to just know how much you paid in a certain category.</p>";
+export const __internals = {};
