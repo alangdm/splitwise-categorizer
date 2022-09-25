@@ -3,11 +3,6 @@ import { html, css, LitElement } from "lit";
 import { resetCSS } from "./reset.css.js";
 import { sharedCSS } from "./shared.css.js";
 
-const PLACEHOLDERS = {
-  normal: "Paste the full Splitwise CSV here",
-  highlight: "Drop the Splitwise CSV file here",
-};
-
 const CSV_REGEX = /.*\.csv$/i;
 
 class CSVInput extends LitElement {
@@ -22,14 +17,38 @@ class CSVInput extends LitElement {
           align-items: start;
           gap: 0.5rem;
         }
+
+        input {
+          position: fixed;
+          top: 0px;
+          left: 0px;
+          width: 4px;
+          height: 4px;
+          opacity: 0;
+          overflow: hidden;
+          border: none;
+          margin: 0;
+          padding: 0;
+          display: block;
+          visibility: visible;
+          pointer-events: none;
+        }
+
         label {
           font-weight: bold;
         }
-        textarea {
-          resize: block;
+
+        #help-text {
+          background-color: var(--primary-contrast-color);
+          width: 100%;
+          height: 4rem;
+          border: 1px solid var(--gray-9);
+          border-radius: 0.25rem;
+          padding: 0.25rem 0.5rem;
         }
-        :host([highlighted]) textarea,
-        textarea:focus-visible {
+
+        :host([highlighted]) #help-text,
+        input:focus-visible ~ #help-text {
           outline: solid var(--primary-color);
         }
       `,
@@ -38,30 +57,28 @@ class CSVInput extends LitElement {
 
   static get properties() {
     return {
-      csv: { type: String },
+      csvArray: { type: Array },
       highlighted: { type: Boolean, reflect: true },
     };
   }
 
   render() {
     return html`
-      <label for="csv">Splitwise CSV</label>
-      <textarea
+      <input
         id="csv"
-        rows="5"
-        cols="80"
-        placeholder=${this.highlighted
-          ? PLACEHOLDERS.highlight
-          : PLACEHOLDERS.normal}
-        .value=${this.csv}
-        @change=${this._textChange}
-      ></textarea>
+        type="file"
+        multiple
+        accept="text/csv"
+        @change=${({ target }) => this._handleFiles(target.files)}
+      />
+      <label for="csv">Splitwise CSV</label>
+      <div id="help-text">Drop the Splitwise CSV files here</div>
     `;
   }
 
   constructor() {
     super();
-    this.csv = "";
+    this.csvArray = [];
     this._highlight = this._highlight.bind(this);
     this._unhighlight = this._unhighlight.bind(this);
     this._drop = this._drop.bind(this);
@@ -86,10 +103,6 @@ class CSVInput extends LitElement {
     document.removeEventListener("drop", this._drop);
   }
 
-  _textChange(e) {
-    this.csv = e.target.value;
-  }
-
   _highlight(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -107,13 +120,16 @@ class CSVInput extends LitElement {
   }
 
   async _handleFiles(files) {
+    this.csvArray = [];
     const fileArr = [...files];
     for (const f of fileArr) {
       if (CSV_REGEX.test(f.name)) {
-        this.csv = await this._readFile(f);
-        return;
+        const content = await this._readFile(f);
+        this.csvArray.push({ name: f.name, content });
       }
     }
+    const event = new Event("change");
+    this.dispatchEvent(event);
   }
 
   _readFile(file) {

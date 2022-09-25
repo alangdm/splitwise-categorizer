@@ -73,6 +73,7 @@ class CategoryTable extends LitElement {
     this.categories = {};
     this.clipboardMessage = "";
     this._categoryTemplate = this._categoryTemplate.bind(this);
+    this._categoryTotalsTemplate = this._categoryTotalsTemplate.bind(this);
   }
 
   async _copy() {
@@ -88,6 +89,19 @@ class CategoryTable extends LitElement {
 
   _totalsTemplate({ header, totals, cssClass = "table-footer" }) {
     const entries = Object.entries(totals);
+
+    if (entries.length === 0) {
+      return html`
+        <tr class=${cssClass}>
+          <td></td>
+          <td></td>
+          <th scope="row">${header ? `${header} subtotal` : "Total"}</th>
+          <td></td>
+          <td>0</td>
+        </tr>
+      `;
+    }
+
     return html`
       ${entries.map(
         ([currency, total], index) => html`
@@ -107,7 +121,10 @@ class CategoryTable extends LitElement {
     `;
   }
 
-  _categoryTemplate([category, { items, subtotals }]) {
+  _categoryTemplate([category, { items }]) {
+    if (items.length === 0) {
+      return empty;
+    }
     return html`
       <tr class="category-header">
         <th scope="row" colspan="5">* ${category}</th>
@@ -123,6 +140,11 @@ class CategoryTable extends LitElement {
           </tr>
         `
       )}
+    `;
+  }
+
+  _categoryTotalsTemplate([category, { subtotals }]) {
+    return html`
       ${this._totalsTemplate({
         header: category,
         totals: subtotals,
@@ -156,6 +178,9 @@ class CategoryTable extends LitElement {
       </div>
       <table>
         <tbody>
+          ${this._totalsTemplate({ totals: this.totals })}
+          ${categories.map(this._categoryTotalsTemplate)}
+          ${this._paymentMethodTotalsTemplate()}
           <tr class="table-header">
             <th scope="col">Date</th>
             <th scope="col">Description</th>
@@ -164,8 +189,6 @@ class CategoryTable extends LitElement {
             <th scope="col">Cost</th>
           </tr>
           ${categories.map(this._categoryTemplate)}
-          ${this._paymentMethodTotalsTemplate()}
-          ${this._totalsTemplate({ totals: this.totals })}
         </tbody>
       </table>
     `;
