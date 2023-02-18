@@ -49,6 +49,9 @@ class CategoryTable extends LitElement {
         .category-footer + .category-header {
           border-top: 2px solid var(--teal-9);
         }
+        .first-row-fix {
+          color: var(--teal-9);
+        }
       `];
   }
 
@@ -95,15 +98,19 @@ class CategoryTable extends LitElement {
   _totalsTemplate({
     header,
     totals,
-    cssClass = "table-footer"
+    cssClass = "table-footer",
+    firstRowFix
   }) {
-    const entries = Object.entries(totals);
+    const entries = Object.entries(totals); // fix to avoid empty space trimming copy issues
+
+    const emptyCellContent = firstRowFix ? "." : empty;
+    const emptyCellClass = firstRowFix ? "first-row-fix" : "";
 
     if (entries.length === 0) {
       return html`
         <tr class=${cssClass}>
-          <td></td>
-          <td></td>
+          <td class=${emptyCellClass}>${emptyCellContent}</td>
+          <td class=${emptyCellClass}>${emptyCellContent}</td>
           <th scope="row">${header ? `${header} subtotal` : "Total"}</th>
           <td></td>
           <td>0</td>
@@ -114,8 +121,8 @@ class CategoryTable extends LitElement {
     return html`
       ${entries.map(([currency, total], index) => html`
           <tr class=${cssClass}>
-            <td></td>
-            <td></td>
+            <td class=${emptyCellClass}>${emptyCellContent}</td>
+            <td class=${emptyCellClass}>${emptyCellContent}</td>
             ${index === 0 ? html`<th scope="row">
                   ${header ? `${header} subtotal` : "Total"}
                 </th>` : html`<td></td>`}
@@ -193,7 +200,8 @@ class CategoryTable extends LitElement {
       <table>
         <tbody>
           ${this._totalsTemplate({
-      totals: this.totals
+      totals: this.totals,
+      firstRowFix: true
     })}
           ${categories.map(this._categoryTotalsTemplate)}
           ${this._paymentMethodTotalsTemplate()}

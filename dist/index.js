@@ -1,5 +1,5 @@
 import { packd_export_0 } from 'https://srv.divriots.com/packd/lit,lit-html@next-major?env.NODE_ENV=development';const { html,css,LitElement } = packd_export_0;;
-import { isExcludedCategory, normalizeCategoryName, CATEGORIES } from "./utils.js";
+import { isExcludedCategory, normalizeCategoryName, CATEGORIES, PAYMENT_METHODS } from "./utils.js";
 import { resetCSS } from "./reset.css.js";
 import { sharedCSS } from "./shared.css.js";
 import "./category-table.js";
@@ -87,6 +87,12 @@ class SplitwiseCategorizer extends LitElement {
         subtotals: {}
       };
     }
+
+    for (const {
+      key
+    } of PAYMENT_METHODS) {
+      this.paymentMethodTotals[key] = {};
+    }
   }
 
   _parseContents(csvContents) {
@@ -138,10 +144,6 @@ class SplitwiseCategorizer extends LitElement {
 
       if (!paymentMethod) {
         continue;
-      }
-
-      if (!this.paymentMethodTotals[paymentMethod]) {
-        this.paymentMethodTotals[paymentMethod] = {};
       }
 
       if (!this.paymentMethodTotals[paymentMethod][currency]) {
