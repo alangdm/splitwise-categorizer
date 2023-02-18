@@ -6,29 +6,35 @@ const COLUMN_REGEX = {
   currency: /currency|moneda/i,
 };
 
-const PAYMENT_METHODS = {
-  tc: {
+export const PAYMENT_METHODS = [
+  {
+    key: "tc",
     en: "Credit Card",
   },
-  ef: {
+  {
+    key: "ef",
     en: "Cash",
   },
-  id: {
+  {
+    key: "id",
     en: "ID",
   },
-  lp: {
+  {
+    key: "lp",
     en: "LINE Pay",
   },
-  ic: {
+  {
+    key: "ic",
     en: "Suica",
   },
-  db: {
+  {
+    key: "db",
     en: "Bank Deposit",
   },
-};
+];
 
 const DESCRIPTION_REGEX = new RegExp(
-  `(?:(?<paymentMethod>${Object.keys(PAYMENT_METHODS).join(
+  `(?:(?<paymentMethod>${PAYMENT_METHODS.map(({ key }) => key).join(
     "|"
   )})\\.\\s*)?(?<description>.*)`,
   "i"
@@ -216,21 +222,26 @@ export const CATEGORIES = [
   },
 ];
 
-CATEGORIES.sort((a, b) => {
-  if (a.en < b.en) {
-    return -1;
-  } else if (a.en > b.en) {
-    return 1;
-  }
-  return 0;
-});
-
 export const EXCLUDED_CATEGORIES = [
   {
     en: "Payment",
     es: "",
   },
 ];
+
+const sortBy = (property) => {
+  return (a, b) => {
+    if (a[property] < b[property]) {
+      return -1;
+    } else if (a[property] > b[property]) {
+      return 1;
+    }
+    return 0;
+  };
+};
+
+CATEGORIES.sort(sortBy("en"));
+PAYMENT_METHODS.sort(sortBy("en"));
 
 export const getColumnIndexes = (headers) => {
   const columns = {};
@@ -247,7 +258,8 @@ export const parseDescription = (rawText) => {
 };
 
 export const getPaymentMethodName = (method, lang = "en") => {
-  return PAYMENT_METHODS[method]?.[lang];
+  const pm = PAYMENT_METHODS.find(({ key }) => key === method);
+  return pm?.[lang] ?? "";
 };
 
 export const normalizeCategoryName = (category) => {
