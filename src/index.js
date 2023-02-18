@@ -4,6 +4,7 @@ import {
   isExcludedCategory,
   normalizeCategoryName,
   CATEGORIES,
+  PAYMENT_METHODS,
 } from "./utils.js";
 
 import { resetCSS } from "./reset.css.js";
@@ -89,6 +90,9 @@ class SplitwiseCategorizer extends LitElement {
         subtotals: {},
       };
     }
+    for (const { key } of PAYMENT_METHODS) {
+      this.paymentMethodTotals[key] = {};
+    }
   }
 
   _parseContents(csvContents) {
@@ -140,9 +144,6 @@ class SplitwiseCategorizer extends LitElement {
         continue;
       }
 
-      if (!this.paymentMethodTotals[paymentMethod]) {
-        this.paymentMethodTotals[paymentMethod] = {};
-      }
       if (!this.paymentMethodTotals[paymentMethod][currency]) {
         this.paymentMethodTotals[paymentMethod][currency] = cost;
       } else {
